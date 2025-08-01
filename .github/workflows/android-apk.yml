@@ -1,32 +1,49 @@
+# .github/workflows/android-apk.yml
+
 name: Build Android APK
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Python
+      - name: Set up Python 3.11
         uses: actions/setup-python@v5
-        with: { python-version: '3.11' }
+        with:
+          python-version: "3.11"
 
-      - name: Install Buildozer & deps
+      - name: Install system packages
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            build-essential git zip unzip openjdk-8-jdk python3-pip
+            build-essential \
+            git \
+            zip \
+            unzip \
+            openjdk-8-jdk \
+            python3-pip
+
+      - name: Install Buildozer & Cython
+        run: |
           pip install --user buildozer Cython
 
-      - name: Build APK
+      - name: Initialize Android SDK & NDK (if needed)
+        run: |
+          buildozer android update sdk --nodownload
+
+      - name: Build APK (debug)
         run: |
           buildozer -v android debug
 
-      - name: Upload APK
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: faceapp-apk
